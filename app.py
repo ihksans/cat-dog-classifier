@@ -1,10 +1,12 @@
 import streamlit as st
+st.set_page_config(page_title="Cat vs Dog Classifier", layout="centered")  # ✅ HARUS paling atas
+
 import tensorflow as tf
 import numpy as np
 from PIL import Image
 import os
 
-# ======== Load model (caching di Hugging Face) ========
+# ======== Load model (cached) ========
 @st.cache_resource
 def load_model():
     model_path = "cat_dog_classifier.h5"
@@ -17,7 +19,6 @@ IMG_SIZE = (160, 160)
 CLASS_NAMES = ["Cat", "Dog"]
 
 # ======== UI ========
-st.set_page_config(page_title="Cat vs Dog Classifier", layout="centered")
 st.title("🐾 Cat vs Dog Classifier")
 st.write("Upload gambar kucing atau anjing, dan model akan menebaknya.")
 
