@@ -2,34 +2,36 @@ import streamlit as st
 import tensorflow as tf
 import numpy as np
 from PIL import Image
+import os
 
-# ======== Konfigurasi ========
-MODEL_PATH = "cat_dog_classifier.h5"
-IMG_SIZE = (160, 160)
-CLASS_NAMES = ["Cat", "Dog"]
-# =============================
-
-# ======== Load Model ========
+# ======== Load model (caching di Hugging Face) ========
 @st.cache_resource
 def load_model():
-    return tf.keras.models.load_model(MODEL_PATH)
+    model_path = "cat_dog_classifier.h5"
+    return tf.keras.models.load_model(model_path)
 
 model = load_model()
 
-# ======== UI ========
-st.title("🐱🐶 Cat vs Dog Classifier")
-st.write("Upload gambar dan biarkan model menebak apakah itu kucing atau anjing.")
+# ======== Konfigurasi ========
+IMG_SIZE = (160, 160)
+CLASS_NAMES = ["Cat", "Dog"]
 
-uploaded_file = st.file_uploader("Upload gambar", type=["jpg", "jpeg", "png"])
+# ======== UI ========
+st.set_page_config(page_title="Cat vs Dog Classifier", layout="centered")
+st.title("🐾 Cat vs Dog Classifier")
+st.write("Upload gambar kucing atau anjing, dan model akan menebaknya.")
+
+# Upload file
+uploaded_file = st.file_uploader("Upload gambar (jpg/png)", type=["jpg", "jpeg", "png"])
 
 if uploaded_file:
     image = Image.open(uploaded_file).convert("RGB")
     st.image(image, caption="Gambar yang diunggah", use_column_width=True)
 
-    # Preprocessing
+    # Preprocess
     img_resized = image.resize(IMG_SIZE)
     img_array = tf.keras.preprocessing.image.img_to_array(img_resized)
-    img_array = img_array / 255.0  # Normalisasi
+    img_array = img_array / 255.0
     img_array = np.expand_dims(img_array, axis=0)
 
     # Predict
@@ -37,5 +39,5 @@ if uploaded_file:
     label = CLASS_NAMES[1] if prediction >= 0.5 else CLASS_NAMES[0]
     confidence = prediction if prediction >= 0.5 else 1 - prediction
 
-    st.markdown(f"### Prediksi: **{label}**")
-    st.markdown(f"Kepercayaan: `{confidence:.2%}`")
+    st.markdown(f"### 🧠 Prediksi: **{label}**")
+    st.markdown(f"🎯 Kepercayaan: `{confidence:.2%}`")
