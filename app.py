@@ -1,26 +1,26 @@
 import streamlit as st
-st.set_page_config(page_title="Cat vs Dog Classifier", layout="centered")  # ✅ HARUS paling atas
+st.set_page_config(page_title="Cat vs Dog Classifier", layout="centered")
 
 import tensorflow as tf
 import numpy as np
 from PIL import Image
-import os
+import pandas as pd
 
 # ======== Load model (cached) ========
 @st.cache_resource
 def load_model():
-    model_path = "cat_dog_classifier.h5"
+    model_path = "cat_dog_unknown_classifier.h5"
     return tf.keras.models.load_model(model_path)
 
 model = load_model()
 
 # ======== Konfigurasi ========
 IMG_SIZE = (160, 160)
-CLASS_NAMES = ["Cat", "Dog"]
+CLASS_NAMES = ["Cat", "Dog", "Unknown"]
 
 # ======== UI ========
 st.title("🐾 Cat vs Dog Classifier")
-st.write("Upload gambar kucing atau anjing, dan model akan menebaknya.")
+st.write("Upload gambar kucing, anjing, atau gambar acak lainnya, dan model akan menebaknya.")
 
 # Upload file
 uploaded_file = st.file_uploader("Upload gambar (jpg/png)", type=["jpg", "jpeg", "png"])
@@ -36,9 +36,19 @@ if uploaded_file:
     img_array = np.expand_dims(img_array, axis=0)
 
     # Predict
-    prediction = model.predict(img_array)[0][0]
-    label = CLASS_NAMES[1] if prediction >= 0.5 else CLASS_NAMES[0]
-    confidence = prediction if prediction >= 0.5 else 1 - prediction
+    prediction = model.predict(img_array)[0]
+    top_idx = np.argmax(prediction)
+    label = CLASS_NAMES[top_idx]
+    confidence = prediction[top_idx]
 
     st.markdown(f"### 🧠 Prediksi: **{label}**")
     st.markdown(f"🎯 Kepercayaan: `{confidence:.2%}`")
+
+    # Visualisasi confidence semua kelas
+    st.subheader("Confidence untuk Setiap Kelas")
+    df = pd.DataFrame({
+        "Kelas": CLASS_NAMES,
+        "Confidence": prediction
+    })
+    df.set_index("Kelas", inplace=True)
+    st.bar_chart(df)
